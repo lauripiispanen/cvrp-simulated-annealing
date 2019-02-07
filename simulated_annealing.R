@@ -133,7 +133,11 @@ plot_route <- function(route, cost_history) {
           ),
           plot.caption = element_text(vjust = 2.5, hjust = 0.5, size=rel(2.5)),
           plot.margin = margin(t = 0.1, l = 0, b = 0, r = 0.1, "cm")) +
-    labs(caption="Cost")
+    labs(caption="Cost") +
+    geom_text(data = data.frame(x = c(1.5), y = c(1), text = c(last(cost_history))),
+              aes(x, y, label = text),
+              size = 25,
+              vjust = "bottom")
   
   p1 <- ggplotGrob(g_map)
   p2 <- ggplotGrob(g_cost)
