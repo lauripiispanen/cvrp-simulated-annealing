@@ -20,7 +20,7 @@ max_leg_weight <- 200
 refine_route <- function(route, temp) {
   new_route <- as_tibble(route)
   row_order <- 1:nrow(new_route)
-  num_to_swap <- as.integer(nrow(new_route) * runif(1, 0, temp))
+  num_to_swap <- (runif(1, 0, temp) * 5) + 1
   for (idx in 1:num_to_swap) {
     entries <- as.integer(runif(c(1, 1), 0, nrow(new_route)))
     row_order[entries] = row_order[rev(entries)]
