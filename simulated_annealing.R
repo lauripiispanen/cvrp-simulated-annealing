@@ -77,7 +77,7 @@ calculate_route_total_cost <- function(route) {
     }))
 }
 
-initial_route <- capitals %>% sample()
+initial_route <- as_tibble(capitals %>% sample())
 
 route_to_segments <- function(route) {
   points <- route %>%
