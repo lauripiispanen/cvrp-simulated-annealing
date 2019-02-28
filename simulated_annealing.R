@@ -30,17 +30,25 @@ refine_route <- function(route, temp) {
 
 add_home_base_visits <- function(route) {
   new_route <- tibble(lat = origin_lat, long = origin_long)
+  lats <- c(origin_lat)
+  longs <- c(origin_long)
+
   current_weight <- 0
   for (idx in 1:nrow(route)) {
     next_dest <- route[idx, ]
     if (current_weight + next_dest$weight >= max_leg_weight) {
-      new_route <- add_row(new_route, lat = origin_lat, long = origin_long)
+      lats <- c(lats, origin_lat)
+      longs <- c(longs, origin_long)
       current_weight <- 0
     }
-    new_route <- add_row(new_route, lat = next_dest$lat, long = next_dest$long)
+    lats <- c(lats, next_dest$lat)
+    longs <- c(longs, next_dest$long)
     current_weight <- current_weight + next_dest$weight
   }
-  add_row(new_route, lat = origin_lat, long = origin_long)
+  lats <- c(lats, origin_lat)
+  longs <- c(longs, origin_long)
+
+  tibble(lat = lats, long = longs)
 }
 
 calculate_route_total_cost <- function(route) {
