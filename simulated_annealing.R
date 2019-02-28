@@ -187,33 +187,41 @@ plot_route <- function(route, cost_history) {
 }
 
 
-rounds <- 1
+rounds <- 250000
 prev_cost <- NULL
 
-for (i in 1:rounds) {
-  current_route <- select_best_route(
-    refine_route(current_route, temperature),
-    current_route,
-    temp = temperature
-  )
-  current_cost <- calculate_route_total_cost(current_route)
-  if (is.null(prev_cost) || current_cost < prev_cost) {
-    cost_history <- c(cost_history, current_cost)
-    temperature <- temperature * (1 - (i / rounds))
-    g <- plot_route(current_route, cost_history)
-    out_filename <- paste0("route", length(cost_history), ".png")
-    width_px <- 3840
-    height_px <- 2160
-    out_dpi <- 72
-    ggsave(out_filename,
-           plot = g,
-           device = "png",
-           dpi = out_dpi,
-           width = width_px / out_dpi,
-           height = height_px / out_dpi,
-           units = "in",
-           limitsize = FALSE)
-    graphics.off()
-    prev_cost <- current_cost
+run_cvrp_simulation <- function() {
+  pb <- txtProgressBar(min = 0, max = rounds, initial = 0, char = "=", style = 3, file = "")
+  
+  for (i in 1:rounds) {
+    route_comparison <- select_better_route(
+      current_route,
+      prev_cost,
+      refine_route(current_route, temperature),
+      temp = temperature
+    )
+    
+    new_cost <- route_comparison[['cost']]
+    current_route <- route_comparison[['route']]
+    if (is.null(prev_cost) || new_cost != prev_cost) {
+      cost_history <- c(cost_history, new_cost)
+      temperature <- temperature * (1 - (i / rounds))
+      g <- plot_route(current_route, cost_history)
+      out_filename <- paste0("route", length(cost_history), ".png")
+      width_px <- 3840
+      height_px <- 2160
+      out_dpi <- 72
+      ggsave(out_filename,
+             plot = g,
+             device = "png",
+             dpi = out_dpi,
+             width = width_px / out_dpi,
+             height = height_px / out_dpi,
+             units = "in",
+             limitsize = FALSE)
+      prev_cost <- new_cost
+    }
+    setTxtProgressBar(pb, i)
   }
+  close(pb)
 }
