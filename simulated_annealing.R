@@ -51,16 +51,30 @@ add_home_base_visits <- function(route) {
   tibble(lat = lats, long = longs)
 }
 
+distances_for_cities <- list()
+
+m_dist <- function(long, lat, long2, lat2) {
+  key <- paste(
+    round(long, digits = 2),
+    round(lat, digits = 2),
+    round(long2, digits = 2),
+    round(lat2, digits = 2),
+    sep = "+")
+  if (is.null(distances_for_cities[[key]])) {
+    distances_for_cities[[key]] <<- distm(c(long, lat), c(long2, lat2), fun = distHaversine)
+  }
+  distances_for_cities[[key]]
+}
+
 calculate_route_total_cost <- function(route) {
-  route %>%
+  sum(apply(route %>%
     add_home_base_visits(.) %>%
-    mutate(next_long = lead(long), next_lat = lead(lat)) %>%
-    rowwise() %>%
-    mutate(dist = distm(c(long, lat), c(next_long, next_lat), fun = distHaversine)) %>%
-    ungroup() %>%
-    na.omit %>%
-    summarise(dist = sum(dist)) %>%
-    pull(dist)
+    mutate(
+      next_long = lead(long),
+      next_lat = lead(lat)
+    ) %>% filter(complete.cases(.)), 1, function(x) {
+      m_dist(x[[2]], x[[1]], x[[3]], x[[4]])
+    }))
 }
 
 initial_route <- capitals %>% sample()
