@@ -111,14 +111,30 @@ route_to_segments <- function(route) {
 
 current_route <- initial_route
 temperature <- initial_temperature
+prob_choose_worse <- 0.01
 cost_history <- calculate_route_total_cost(current_route)
 
-select_best_route <- function(..., temp = NULL) {
+select_better_route <- function(current_route,
+                                current_cost,
+                                suggested_route,
+                                temp = NULL) {
   if (is.null(temp)) {
     stop("Temperature cannot be null")
   }
-  routes <- list(...)
-  routes[[routes %>% purrr::map(calculate_route_total_cost) %>% which.min]]
+  
+  new_cost <- calculate_route_total_cost(suggested_route)
+  should_choose_worse <- (runif(1) < prob_choose_worse * temp)
+  if (is.null(current_cost) || new_cost < current_cost || should_choose_worse) {
+    list(
+      cost = new_cost,
+      route = suggested_route
+    )
+  } else {
+    list(
+      cost = current_cost,
+      route = current_route
+    )
+  }
 }
 
 plot_route <- function(route, cost_history) {
