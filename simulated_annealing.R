@@ -137,26 +137,28 @@ select_better_route <- function(current_route,
   }
 }
 
+g_map <- ggplot() +
+  borders("world", colour="gray50", fill="gray50") +
+  geom_point(data = capitals,
+             aes(x = long, y = lat, colour = "red"),
+             size = 2.5,
+             show.legend = FALSE) +
+  theme(axis.title=element_blank(),
+        axis.text=element_blank(),
+        axis.ticks=element_blank()) +
+  coord_equal(expand = FALSE,
+              xlim = c(-180, 180),
+              ylim = c(-84, 84),
+              ratio = 1.2)
+
+gt <- gtable(widths = unit(c(1, .5, .9, .1), "null"), 
+             heights = unit(c(.2, 1, 1, .75, .1), "null"))
+
 plot_route <- function(route, cost_history) {
   cost_hist <- data.frame(cost = cost_history)
-  g_map <- ggplot(route_to_segments(route)) +
-    borders("world", colour="gray50", fill="gray50") +
-    geom_point(data = capitals,
-               aes(x = long, y = lat, colour = "red"),
-               size = 2.5,
-               show.legend = FALSE) +
-    geom_segment(aes(x = long, y = lat, xend = longend, yend = latend),
-                 size = 0.5) +
-    theme(axis.title=element_blank(),
-          axis.text=element_blank(),
-          axis.ticks=element_blank()) +
-    coord_equal(expand = FALSE,
-                xlim = c(-180, 180),
-                ylim = c(-84, 84),
-                ratio = 1.2)
   
-  g_cost <- ggplot(cost_hist) +
-    geom_line(aes(x=1:nrow(cost_hist), y=cost), size = 1) +
+  g_cost <- ggplot() +
+    geom_line(data = cost_hist, aes(x=1:nrow(cost_hist), y=cost), size = 1) +
     theme(axis.title=element_blank(),
           axis.text=element_blank(),
           axis.ticks=element_blank(),
@@ -168,17 +170,19 @@ plot_route <- function(route, cost_history) {
           plot.caption = element_text(vjust = 2.5, hjust = 0.5, size=rel(2.5)),
           plot.margin = margin(t = 0.1, l = 0, b = 0, r = 0.1, "cm")) +
     labs(caption="Cost") +
-    geom_text(data = data.frame(x = c(1.5), y = c(1), text = c(last(cost_history))),
-              aes(x, y, label = text),
+    geom_text(data = 
+                data.frame(x = c((nrow(cost_hist) + 1) / 2),
+                           y = c(1), 
+                           text = c(last(cost_history))),
+              aes(x, y, label = as.integer(text)),
               size = 25,
               vjust = "bottom")
   
-  p1 <- ggplotGrob(g_map)
-  p2 <- ggplotGrob(g_cost)
-  
-  gt <- gtable(widths = unit(c(1, .5, .9, .1), "null"), 
-               heights = unit(c(.2, 1, 1, .75, .1), "null"))
+  p1 <- ggplotGrob(g_map + geom_segment(data = route_to_segments(route), aes(x = long, y = lat, xend = longend, yend = latend),
+                                        size = 0.5))
   gt <- gtable_add_grob(gt, p1, t = 1, b = 5, l = 1, r = 4)
+  
+  p2 <- ggplotGrob(g_cost)
   gt <- gtable_add_grob(gt, p2, t = 4, b = 4, l = 3, r = 3)
 }
 
