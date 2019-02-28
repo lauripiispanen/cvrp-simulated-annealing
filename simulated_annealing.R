@@ -86,9 +86,6 @@ route_to_segments <- function(route) {
       latend = lead(lat),
       longend = lead(long)
     ) %>%
-    select(
-      lat, long, latend, longend
-    ) %>%
     na.omit
 
   (gcIntermediate(
@@ -107,7 +104,6 @@ route_to_segments <- function(route) {
             long = lon,
             longend = lead(long)
           ) %>%
-          select(long, lat, longend, latend) %>%
           filter(complete.cases(.))
       }) %>%
       bind_rows()
